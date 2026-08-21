@@ -129,6 +129,38 @@ class ProviderConfigRequest(BaseModel):
         default=True,
         description="Discover models after saving a supported provider",
     )
+    max_inline_media_bytes: Optional[int] = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Legacy inline cap for all media, in bytes (0 disables "
+            "capping). Overrides the per-provider default."
+        ),
+    )
+    max_image_bytes: Optional[int] = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Inline cap for images, in bytes. None falls back to "
+            "max_inline_media_bytes."
+        ),
+    )
+    max_video_bytes: Optional[int] = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Inline cap for videos, in bytes. None falls back to "
+            "max_inline_media_bytes."
+        ),
+    )
+    max_audio_bytes: Optional[int] = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Inline cap for audio, in bytes. None falls back to "
+            "max_inline_media_bytes."
+        ),
+    )
 
 
 def _should_auto_discover(
@@ -309,6 +341,10 @@ async def configure_provider(
         "generate_kwargs": body.generate_kwargs,
         "custom_headers": body.custom_headers,
         "auth_mode": body.auth_mode,
+        "max_inline_media_bytes": body.max_inline_media_bytes,
+        "max_image_bytes": body.max_image_bytes,
+        "max_video_bytes": body.max_video_bytes,
+        "max_audio_bytes": body.max_audio_bytes,
     }
     # Renaming is restricted to custom providers so built-in
     # provider names stay immutable.

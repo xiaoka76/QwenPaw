@@ -359,6 +359,7 @@ class AnthropicProvider(Provider):
             context_size=self._get_context_size(model_id),
             formatter=_CappingAnthropicFormatter(
                 max_bytes=self.max_inline_media_bytes,
+                **self._capping_media_kwargs(),
             ),
         )
 

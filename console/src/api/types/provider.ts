@@ -69,6 +69,14 @@ export interface ProviderInfo {
   custom_headers?: Record<string, string>;
   /** Authentication mode: 'api_key' (x-api-key) or 'auth_token' (Authorization: Bearer). */
   auth_mode?: "api_key" | "auth_token";
+  /** Legacy inline cap for all media, in bytes (0 disables capping). */
+  max_inline_media_bytes?: number;
+  /** Kind-specific inline cap for images, in bytes (null = fall back to legacy). */
+  max_image_bytes?: number | null;
+  /** Kind-specific inline cap for videos, in bytes (null = fall back to legacy). */
+  max_video_bytes?: number | null;
+  /** Kind-specific inline cap for audio, in bytes (null = fall back to legacy). */
+  max_audio_bytes?: number | null;
   /** Whether this provider supports OAuth login. */
   supports_oauth?: boolean;
   /** Whether OAuth is currently connected. */
@@ -108,6 +116,14 @@ export interface ProviderConfigRequest {
   generate_kwargs?: Record<string, unknown>;
   custom_headers?: Record<string, string>;
   auth_mode?: "api_key" | "auth_token";
+  /** Legacy inline cap for all media, in bytes (0 disables capping). */
+  max_inline_media_bytes?: number;
+  /** Inline cap for images, in bytes. */
+  max_image_bytes?: number;
+  /** Inline cap for videos, in bytes. */
+  max_video_bytes?: number;
+  /** Inline cap for audio, in bytes. */
+  max_audio_bytes?: number;
 }
 
 export interface ModelSlotConfig {

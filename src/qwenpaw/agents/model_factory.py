@@ -624,6 +624,20 @@ def _count_wire_audio_blocks(value: Any) -> int:
     return sum(_count_wire_audio_blocks(item) for item in value.values())
 
 
+def _video_inline_cap(formatter: Any) -> int:
+    """Effective inline cap for video media on a capping formatter.
+
+    Uses the kind-specific ``max_video_bytes`` when set, otherwise falls
+    back to the legacy ``max_bytes``. ``None`` means "not configured", so
+    an explicit ``0`` (disable capping) is preserved.
+    """
+    cap = getattr(formatter, "max_video_bytes", None)
+    if cap is None:
+        cap = getattr(formatter, "max_bytes", MAX_INLINE_MEDIA_BYTES)
+    assert cap is not None
+    return cap
+
+
 def _video_oversize_placeholder(
     size: int,
     *,
@@ -1438,9 +1452,7 @@ def _create_file_block_support_formatter(
             if media_type.startswith("video/"):
                 return _format_anthropic_video_data_block(
                     block,
-                    max_inline_media_bytes=(
-                        getattr(self, "max_bytes", MAX_INLINE_MEDIA_BYTES)
-                    ),
+                    max_inline_media_bytes=_video_inline_cap(self),
                 )
             return super()._format_anthropic_data_block(block)
 
@@ -1556,9 +1568,7 @@ def _create_file_block_support_formatter(
                         messages,
                         video_subs,
                         response_api=_is_response_formatter,
-                        max_inline_media_bytes=(
-                            getattr(self, "max_bytes", MAX_INLINE_MEDIA_BYTES)
-                        ),
+                        max_inline_media_bytes=_video_inline_cap(self),
                     )
                     _restore_video_blocks(normalized_msgs, video_subs)
 
@@ -1571,9 +1581,7 @@ def _create_file_block_support_formatter(
                         normalized_msgs,
                         messages,
                         response_api=_is_response_formatter,
-                        max_inline_media_bytes=(
-                            getattr(self, "max_bytes", MAX_INLINE_MEDIA_BYTES)
-                        ),
+                        max_inline_media_bytes=_video_inline_cap(self),
                     )
             finally:
                 _FORMATTER_SEEN_MEDIA_KEYS.reset(seen_media_token)

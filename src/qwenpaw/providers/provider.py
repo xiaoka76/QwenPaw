@@ -313,6 +313,30 @@ class ProviderInfo(BaseModel):
         default="OpenAIChatModel",
         description="AgentScope ChatModel name (e.g., 'OpenAIChatModel')",
     )
+    max_image_bytes: int | None = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Kind-specific inline cap for images, in bytes. None falls "
+            "back to max_inline_media_bytes."
+        ),
+    )
+    max_video_bytes: int | None = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Kind-specific inline cap for videos, in bytes. None falls "
+            "back to max_inline_media_bytes."
+        ),
+    )
+    max_audio_bytes: int | None = Field(
+        default=None,
+        ge=0,
+        description=(
+            "Kind-specific inline cap for audio, in bytes. None falls "
+            "back to max_inline_media_bytes."
+        ),
+    )
     models: List[ModelInfo] = Field(
         default_factory=list,
         description="List of pre-defined models",
@@ -538,6 +562,18 @@ class Provider(ProviderInfo, ABC):  # pylint: disable=too-many-public-methods
         )
         return message
 
+    def _capping_media_kwargs(self) -> dict:
+        """Kind-specific media caps forwarded to a capping formatter.
+
+        Fields are ``None`` by default so only explicitly configured
+        values override the formatter's legacy ``max_bytes``.
+        """
+        return {
+            "max_image_bytes": self.max_image_bytes,
+            "max_video_bytes": self.max_video_bytes,
+            "max_audio_bytes": self.max_audio_bytes,
+        }
+
     @classmethod
     def connection_error_message(cls, exc: Exception) -> str:
         """Format an SDK exception while preserving its HTTP status."""
@@ -665,6 +701,22 @@ class Provider(ProviderInfo, ABC):  # pylint: disable=too-many-public-methods
             "auth_token",
         ):
             self.auth_mode = config["auth_mode"]
+        self._update_media_caps(config)
+
+    def _update_media_caps(self, config: Dict) -> None:
+        """Apply media inline cap overrides from a config dict.
+
+        ``None`` values are ignored so a partial update leaves the
+        current caps untouched.
+        """
+        for _media_field in (
+            "max_inline_media_bytes",
+            "max_image_bytes",
+            "max_video_bytes",
+            "max_audio_bytes",
+        ):
+            if _media_field in config and config[_media_field] is not None:
+                setattr(self, _media_field, config[_media_field])
         if "extra_models" in config and config["extra_models"] is not None:
             # Always go through model_validate with dict data to
             # avoid class-identity issues from dual module loading.

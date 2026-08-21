@@ -272,3 +272,67 @@ def test_non_http_remote_scheme_passthrough() -> None:
         source = URLSource(url=scheme_url, media_type="image/png")
         # inline_media_size must return None (not try getsize)
         assert inline_media_size(source) is None
+
+
+# ---------------------------------------------------------------------------
+# Kind-specific caps (max_image_bytes / max_video_bytes / max_audio_bytes)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("cls", _ALL_CAPPING_FORMATTERS)
+def test_kind_caps_default_to_none_and_fallback(cls) -> None:
+    """Kind caps default to None so legacy max_bytes governs by default."""
+    formatter = cls()
+    assert formatter.max_image_bytes is None
+    assert formatter.max_video_bytes is None
+    assert formatter.max_audio_bytes is None
+    assert formatter._cap_for_kind("image") == MAX_INLINE_MEDIA_BYTES
+    assert formatter._cap_for_kind("video") == MAX_INLINE_MEDIA_BYTES
+    assert formatter._cap_for_kind("audio") == MAX_INLINE_MEDIA_BYTES
+    # Unknown kinds (e.g. Gemini's unified "media") also fall back to legacy.
+    assert formatter._cap_for_kind("media") == MAX_INLINE_MEDIA_BYTES
+
+
+def test_kind_caps_override_legacy() -> None:
+    formatter = _CappingOpenAIFormatter(
+        max_bytes=MAX_INLINE_MEDIA_BYTES,
+        max_image_bytes=7 * 1024 * 1024,
+        max_video_bytes=50 * 1024 * 1024,
+        max_audio_bytes=25 * 1024 * 1024,
+    )
+    assert formatter._cap_for_kind("image") == 7 * 1024 * 1024
+    assert formatter._cap_for_kind("video") == 50 * 1024 * 1024
+    assert formatter._cap_for_kind("audio") == 25 * 1024 * 1024
+    # A kind without its own cap still falls back to legacy.
+    assert formatter._cap_for_kind("media") == MAX_INLINE_MEDIA_BYTES
+
+
+def test_kind_cap_zero_disables() -> None:
+    formatter = _CappingOpenAIFormatter(
+        max_bytes=MAX_INLINE_MEDIA_BYTES,
+        max_video_bytes=0,
+    )
+    assert formatter._cap_for_kind("video") == 0
+
+
+def test_maybe_cap_uses_kind_specific_cap() -> None:
+    """A source exceeding the image cap but not the video cap is capped
+    for images and passed through for videos."""
+    formatter = _CappingOpenAIFormatter(
+        max_bytes=2 * 1024 * 1024,
+        max_image_bytes=1024,
+        max_video_bytes=50 * 1024 * 1024,
+    )
+    src = _base64_source(2048, "video/mp4")
+    assert formatter._maybe_cap(src, "image") is not None
+    assert formatter._maybe_cap(src, "video") is None
+
+
+def test_placeholder_reports_kind_specific_cap() -> None:
+    formatter = _CappingOpenAIFormatter(
+        max_bytes=2 * 1024 * 1024,
+        max_video_bytes=50 * 1024 * 1024,
+    )
+    text = formatter._placeholder_text("video", 60 * 1024 * 1024)
+    assert f"{50 * 1024 * 1024} bytes" in text
+    assert "2097152 bytes" not in text

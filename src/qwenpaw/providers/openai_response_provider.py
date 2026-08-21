@@ -410,5 +410,6 @@ class OpenAIResponseProvider(OpenAIProvider):
             extra_generate_kwargs=gen_kwargs or None,
             formatter=_CappingOpenAIResponseFormatter(
                 max_bytes=self.max_inline_media_bytes,
+                **self._capping_media_kwargs(),
             ),
         )

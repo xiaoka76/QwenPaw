@@ -1111,6 +1111,13 @@ class ProviderManagerPersistenceMixin(
             builtin.custom_headers = provider.custom_headers
         if hasattr(builtin, "max_inline_media_bytes"):
             builtin.max_inline_media_bytes = provider.max_inline_media_bytes
+        for _media_field in (
+            "max_image_bytes",
+            "max_video_bytes",
+            "max_audio_bytes",
+        ):
+            if hasattr(builtin, _media_field):
+                setattr(builtin, _media_field, getattr(provider, _media_field))
 
         builtin_model_ids = {model.id for model in builtin.models}
         builtin.extra_models = [

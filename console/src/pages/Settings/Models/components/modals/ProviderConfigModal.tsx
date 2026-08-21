@@ -3,6 +3,7 @@ import type { KeyboardEvent, ReactNode, UIEvent } from "react";
 import {
   Form,
   Input,
+  InputNumber,
   Modal,
   Button,
   Select,
@@ -30,6 +31,11 @@ interface ProviderConfigFormValues
     "generate_kwargs" | "custom_headers" | "auth_mode"
   > {
   generate_kwargs_text?: string;
+  /** Media caps in MiB as shown in the UI (converted to bytes on submit). */
+  max_inline_media_bytes_mb?: number;
+  max_image_bytes_mb?: number;
+  max_video_bytes_mb?: number;
+  max_audio_bytes_mb?: number;
 }
 
 interface HeaderEntry {
@@ -469,6 +475,22 @@ export function ProviderConfigModal({
           Object.keys(provider.generate_kwargs).length > 0
             ? JSON.stringify(provider.generate_kwargs, null, 2)
             : undefined,
+        max_inline_media_bytes_mb:
+          provider.max_inline_media_bytes != null
+            ? provider.max_inline_media_bytes / 1024 / 1024
+            : undefined,
+        max_image_bytes_mb:
+          provider.max_image_bytes != null
+            ? provider.max_image_bytes / 1024 / 1024
+            : undefined,
+        max_video_bytes_mb:
+          provider.max_video_bytes != null
+            ? provider.max_video_bytes / 1024 / 1024
+            : undefined,
+        max_audio_bytes_mb:
+          provider.max_audio_bytes != null
+            ? provider.max_audio_bytes / 1024 / 1024
+            : undefined,
       });
       setAdvancedOpen(false);
       setFormDirty(false);
@@ -530,6 +552,22 @@ export function ProviderConfigModal({
         generate_kwargs: hasGenerateConfigInput ? generateConfig : {},
         custom_headers: headersObj,
         auth_mode: isAnthropicProvider ? authMode : undefined,
+        max_inline_media_bytes:
+          values.max_inline_media_bytes_mb != null
+            ? Math.round(values.max_inline_media_bytes_mb * 1024 * 1024)
+            : undefined,
+        max_image_bytes:
+          values.max_image_bytes_mb != null
+            ? Math.round(values.max_image_bytes_mb * 1024 * 1024)
+            : undefined,
+        max_video_bytes:
+          values.max_video_bytes_mb != null
+            ? Math.round(values.max_video_bytes_mb * 1024 * 1024)
+            : undefined,
+        max_audio_bytes:
+          values.max_audio_bytes_mb != null
+            ? Math.round(values.max_audio_bytes_mb * 1024 * 1024)
+            : undefined,
       });
 
       await onSaved();
@@ -905,6 +943,42 @@ export function ProviderConfigModal({
               </div>
             </Form.Item>
           )}
+
+          <Form.Item
+            hidden={!advancedOpen}
+            name="max_inline_media_bytes_mb"
+            label={t("models.maxInlineMediaBytes")}
+            extra={t("models.maxMediaBytesHint")}
+          >
+            <InputNumber min={0} step={1} style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item
+            hidden={!advancedOpen}
+            name="max_image_bytes_mb"
+            label={t("models.maxImageBytes")}
+            extra={t("models.maxMediaBytesHint")}
+          >
+            <InputNumber min={0} step={1} style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item
+            hidden={!advancedOpen}
+            name="max_video_bytes_mb"
+            label={t("models.maxVideoBytes")}
+            extra={t("models.maxMediaBytesHint")}
+          >
+            <InputNumber min={0} step={1} style={{ width: "100%" }} />
+          </Form.Item>
+
+          <Form.Item
+            hidden={!advancedOpen}
+            name="max_audio_bytes_mb"
+            label={t("models.maxAudioBytes")}
+            extra={t("models.maxMediaBytesHint")}
+          >
+            <InputNumber min={0} step={1} style={{ width: "100%" }} />
+          </Form.Item>
 
           <Form.Item
             hidden={!advancedOpen}

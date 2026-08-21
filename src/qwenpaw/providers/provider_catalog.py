@@ -50,6 +50,9 @@ GEMINI_MODELS = _models("GEMINI_MODELS")
 KIMI_CODINGPLAN_MODELS = _models("KIMI_CODINGPLAN_MODELS")
 GITHUB_MODELS_MODELS = _models("GITHUB_MODELS_MODELS")
 
+# 1 MiB — used to express per-provider media inline caps in bytes.
+_MB = 1024 * 1024
+
 PROVIDER_MODELSCOPE = ModelScopeProvider(
     id="modelscope",
     name="ModelScope",
@@ -58,6 +61,9 @@ PROVIDER_MODELSCOPE = ModelScopeProvider(
     models=MODELSCOPE_MODELS,
     support_model_discovery=True,
     freeze_url=True,
+    max_image_bytes=7 * _MB,
+    max_video_bytes=7 * _MB,
+    max_audio_bytes=7 * _MB,
 )
 
 PROVIDER_DASHSCOPE = DashScopeProvider(
@@ -89,6 +95,9 @@ PROVIDER_DASHSCOPE = DashScopeProvider(
             },
         ],
     },
+    max_image_bytes=7 * _MB,
+    max_video_bytes=7 * _MB,
+    max_audio_bytes=7 * _MB,
 )
 
 PROVIDER_ALIYUN_CODINGPLAN = OpenAIProvider(
@@ -214,6 +223,9 @@ PROVIDER_OPENAI = OpenAIProvider(
     models=OPENAI_MODELS,
     support_model_discovery=True,
     freeze_url=True,
+    max_image_bytes=20 * _MB,
+    max_video_bytes=20 * _MB,
+    max_audio_bytes=25 * _MB,
 )
 
 PROVIDER_OPENAI_RESPONSE = OpenAIResponseProvider(
@@ -225,6 +237,9 @@ PROVIDER_OPENAI_RESPONSE = OpenAIResponseProvider(
     models=OPENAI_MODELS,
     support_model_discovery=True,
     freeze_url=True,
+    max_image_bytes=20 * _MB,
+    max_video_bytes=20 * _MB,
+    max_audio_bytes=25 * _MB,
 )
 
 PROVIDER_OPENCODE = OpenCodeProvider(
@@ -273,6 +288,9 @@ PROVIDER_MINIMAX = AnthropicProvider(
     provider_group="minimax",
     provider_group_name="MiniMax",
     provider_variant="open_platform_intl",
+    max_image_bytes=10 * _MB,
+    max_video_bytes=50 * _MB,
+    max_audio_bytes=50 * _MB,
 )
 
 PROVIDER_MINIMAX_CN = AnthropicProvider(
@@ -286,6 +304,9 @@ PROVIDER_MINIMAX_CN = AnthropicProvider(
     provider_group="minimax",
     provider_group_name="MiniMax",
     provider_variant="open_platform_cn",
+    max_image_bytes=10 * _MB,
+    max_video_bytes=50 * _MB,
+    max_audio_bytes=50 * _MB,
 )
 
 PROVIDER_KIMI_CN = OpenAIProvider(
@@ -349,6 +370,8 @@ PROVIDER_ANTHROPIC = AnthropicProvider(
     chat_model="AnthropicChatModel",
     support_model_discovery=True,
     freeze_url=False,
+    max_image_bytes=5 * _MB,
+    max_audio_bytes=32 * _MB,
 )
 
 PROVIDER_GEMINI = GeminiProvider(
@@ -360,6 +383,9 @@ PROVIDER_GEMINI = GeminiProvider(
     chat_model="GeminiChatModel",
     support_model_discovery=True,
     freeze_url=True,
+    max_image_bytes=20 * _MB,
+    max_video_bytes=20 * _MB,
+    max_audio_bytes=20 * _MB,
     meta={
         "is_free_tier": True,
     },
@@ -382,6 +408,9 @@ PROVIDER_OPENROUTER = OpenRouterProvider(
     models=[],
     freeze_url=True,
     support_model_discovery=True,
+    max_image_bytes=20 * _MB,
+    max_video_bytes=50 * _MB,
+    max_audio_bytes=50 * _MB,
     meta={
         "supports_oauth": True,
         "is_free_tier": True,
@@ -458,6 +487,9 @@ PROVIDER_VOLCENGINE_CN = OpenAIProvider(
     provider_group="volcengine",
     provider_group_name="Volcano Engine",
     provider_variant="open_platform",
+    max_image_bytes=10 * _MB,
+    max_video_bytes=50 * _MB,
+    max_audio_bytes=25 * _MB,
 )
 
 PROVIDER_VOLCENGINE_CN_CODINGPLAN = OpenAIProvider(
@@ -481,6 +513,9 @@ PROVIDER_MIMO_TOKENPLAN = OpenAIProvider(
     api_key_prefix="",
     models=MIMO_TOKENPLAN_MODELS,
     freeze_url=True,
+    max_image_bytes=50 * _MB,
+    max_video_bytes=50 * _MB,
+    max_audio_bytes=50 * _MB,
 )
 
 

@@ -79,18 +79,40 @@ class CappingFormatterMixin:  # pylint: disable=too-few-public-methods
     Holds the configurable ``max_bytes`` cap and the placeholder logic.
     Subclasses override the relevant ``_format_*_source`` methods to call
     :meth:`_maybe_cap` first and defer to ``super()`` otherwise.
+
+    Media-kind-specific caps (``max_image_bytes`` / ``max_video_bytes`` /
+    ``max_audio_bytes``) take precedence when set; ``None`` falls back to
+    the legacy ``max_bytes`` so existing configurations keep working.
     """
 
     max_bytes: int = Field(default=MAX_INLINE_MEDIA_BYTES, ge=0)
+    max_image_bytes: int | None = Field(default=None, ge=0)
+    max_video_bytes: int | None = Field(default=None, ge=0)
+    max_audio_bytes: int | None = Field(default=None, ge=0)
     relay_reasoning_content: bool = Field(default=True)
 
     _inline_media_size = staticmethod(inline_media_size)
+
+    def _cap_for_kind(self, kind: str) -> int:
+        """Effective byte cap for a media *kind*.
+
+        ``image`` / ``video`` / ``audio`` use their own cap when set,
+        otherwise (and for any other kind such as Gemini's ``media``)
+        fall back to the legacy ``max_bytes``.
+        """
+        if kind == "image" and self.max_image_bytes is not None:
+            return self.max_image_bytes
+        if kind == "video" and self.max_video_bytes is not None:
+            return self.max_video_bytes
+        if kind == "audio" and self.max_audio_bytes is not None:
+            return self.max_audio_bytes
+        return self.max_bytes
 
     def _placeholder_text(self, kind: str, size: int) -> str:
         return (
             f"[{kind} omitted from model context: local file is "
             f"{size} bytes, exceeds inline limit of "
-            f"{self.max_bytes} bytes]"
+            f"{self._cap_for_kind(kind)} bytes]"
         )
 
     def _placeholder(self, kind: str, size: int) -> dict[str, Any]:
@@ -107,10 +129,11 @@ class CappingFormatterMixin:  # pylint: disable=too-few-public-methods
 
         ``None`` means "no capping decision — defer to the base formatter".
         """
-        if self.max_bytes <= 0:
+        cap = self._cap_for_kind(kind)
+        if cap <= 0:
             return None
         size = self._inline_media_size(source)
-        if size is None or size <= self.max_bytes:
+        if size is None or size <= cap:
             return None
         return self._placeholder(kind, size)
 

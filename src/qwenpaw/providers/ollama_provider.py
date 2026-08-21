@@ -109,6 +109,7 @@ class OllamaProvider(OpenAIProvider):
             context_size=self._get_context_size(model_id),
             formatter=_CappingOpenAIFormatter(
                 max_bytes=self.max_inline_media_bytes,
+                **self._capping_media_kwargs(),
                 relay_reasoning_content=self._get_relay_reasoning(model_id),
             ),
         )
